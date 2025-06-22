@@ -56,7 +56,7 @@ def parse_rider(full_name, url, verbose=True):
     
     result["nationality"] = soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > a").get_text()
     
-    # Misc
+    # shittiest code ever
     info = soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont")
     split_info = info.get_text().split()
     n = len(split_info)
@@ -64,22 +64,36 @@ def parse_rider(full_name, url, verbose=True):
     result["height"] = None
     result["weight"] = None
     for i, info in enumerate(split_info):
+        if i > 1:
+            if info == "kg":
+                result["weight"] = float(split_info[i-1])
+                continue
+        if i < n-1:
+            if info == "Height:":
+                result["height"] = float(split_info[i+1])
         if i < n-4:
             if info == "birth:" and split_info[i+4].endswith("Nationality:"):
                 result["birth_year"] = int(split_info[i+3])
-                
+                continue
+        
+    result["onedayraces"] = int(soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > span:nth-child(8) > span > div.pps > ul > li:nth-child(1) > div.pnt").get_text())
+    result["gc"] = int(soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > span:nth-child(8) > span > div.pps > ul > li:nth-child(1) > div.pnt").get_text())
+    result["tt"] = int(soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > span:nth-child(8) > span > div.pps > ul > li:nth-child(3) > div.pnt").get_text()) 
+    result["sprint"] = int(soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > span:nth-child(8) > span > div.pps > ul > li:nth-child(4) > div.pnt").get_text())
+    result["climber"] = int(soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > span:nth-child(8) > span > div.pps > ul > li:nth-child(5) > div.pnt").get_text()) 
+    result["hills"] = int(soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > span:nth-child(8) > span > div.pps > ul > li:nth-child(6) > div.pnt").get_text())
+    
     
     return result
 
 
 
 if __name__ == "__main__":
-    # tt_specialists_dict = get_tt_specialists()
-    # data = [parse_rider(name,url) for name, url in tt_specialists_dict.items()]
-    # df = pd.DataFrame(data)
-    # df.to_csv("data/riders.csv")
+    tt_specialists_dict = get_tt_specialists()
+    data = [parse_rider(name,url) for name, url in tt_specialists_dict.items()]
+    df = pd.DataFrame(data)
+    df.to_csv("data/riders.csv",index=False)
     
-    url = "https://www.procyclingstats.com/rider/vincenzo-nibali"
-    name = "NIBALI Vincenzo"
-    print(parse_rider(full_name=name,url=url))
-    
+    # url = "https://www.procyclingstats.com/rider/vincenzo-nibali"
+    # name = "NIBALI Vincenzo"
+    # print(parse_rider(full_name=name,url=url))
