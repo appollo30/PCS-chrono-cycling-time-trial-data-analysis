@@ -1,0 +1,11 @@
+name : pcs-chrono
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.12
+  - beautifulsoup4
+  - pandas
+  - requests
+  - numpy
+  - sqlite
