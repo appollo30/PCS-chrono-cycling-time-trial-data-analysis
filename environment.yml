@@ -9,3 +9,9 @@ dependencies:
   - requests
   - numpy
   - sqlite
+  - matplotlib
+  - jupyterlab
+  - ipykernel
+  - notebook
+  - seaborn
+  - scikit-learn
