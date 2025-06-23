@@ -20,7 +20,7 @@ def get_all_tt_specialists_per_year(year=2025, verbose=True) -> Set[Tuple[str,st
         if i < len(all_rows):
             rider_link = all_rows[i].select_one("td:nth-child(4) > a")
             if rider_link:
-                result.add((base_url + rider_link.get("href"), rider_link.text)) # (name, url) tuple
+                result.add((rider_link.text, base_url + rider_link.get("href"))) # (name, url) tuple
     return result
 
 def get_all_tt_specialists() -> Set[Tuple[str,str]]:
@@ -86,15 +86,16 @@ async def parse_rider(full_name, url, session, verbose=True) -> Dict:
     
     return result
 
-async def process_all_riders(tt_specialists_dict) -> List[Dict]:
+async def process_all_riders(tt_specialists_set : Set[Tuple[str,str]]) -> List[Dict]:
     """Process all riders concurrently using async"""
     async with aiohttp.ClientSession() as session:
-        tasks = [parse_rider(name, url, session) for name, url in tt_specialists_dict.items()]
+        tasks = [parse_rider(name, url, session) for name, url in tt_specialists_set]
         data = await asyncio.gather(*tasks)
     return data
 
 if __name__ == "__main__":
     tt_specialists_dict = get_all_tt_specialists()
+    
     data = asyncio.run(process_all_riders(tt_specialists_dict))
     df = pd.DataFrame(data)
     df.to_csv("data/riders.csv", index=False) 
