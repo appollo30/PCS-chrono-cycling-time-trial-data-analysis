@@ -1,17 +1,18 @@
-from bs4 import BeautifulSoup
-import requests
 import pandas as pd
+import asyncio
+import aiohttp
+from utils import fetch, fetch_async
+from typing import List, Dict, Set, Tuple
 
 
-def collect_time_trial_specialists(year=2025, verbose=True):
-    result = dict()
+def get_all_tt_specialists_per_year(year=2025, verbose=True) -> Set[Tuple[str,str]]:
+    result = set()
     
     base_url = "https://www.procyclingstats.com/"
     rider_specialties_url = f"https://www.procyclingstats.com/rankings.php?date={year-1}-12-31&nation=&age=&zage=&page=smallerorequal&team=&offset=0&filter=Filter&p=me&s=time-trial"
     if verbose:
         print(f"Accessing the list of riders for {year}")
-    response = requests.get(rider_specialties_url)
-    soup = BeautifulSoup(response.text, "html.parser")
+    soup = fetch(rider_specialties_url)
     
     all_rows = soup.select("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > span > table > tbody > tr")
 
@@ -19,17 +20,17 @@ def collect_time_trial_specialists(year=2025, verbose=True):
         if i < len(all_rows):
             rider_link = all_rows[i].select_one("td:nth-child(4) > a")
             if rider_link:
-                result[rider_link.text] = base_url + rider_link.get("href") # URL : name key-value pairs
+                result.add((base_url + rider_link.get("href"), rider_link.text)) # (name, url) tuple
     return result
 
-def get_tt_specialists():
-    tt_specialists_dict = dict()
+def get_all_tt_specialists() -> Set[Tuple[str,str]]:
+    tt_specialists_set = set()
     for year in range(2020,2025):
-        tt_specialists_dict = tt_specialists_dict | collect_time_trial_specialists(year)
+        tt_specialists_set = tt_specialists_set | get_all_tt_specialists_per_year(year)
     
-    return tt_specialists_dict
+    return tt_specialists_set
     
-def process_name(full_name):
+def process_name(full_name : str) -> Tuple[str,str]:
     split = full_name.strip().split(" ")
     last_name = ""
     for i, word in enumerate(split):
@@ -41,11 +42,10 @@ def process_name(full_name):
     first_name = " ".join(split[i:])
     return first_name, last_name
 
-def parse_rider(full_name, url, verbose=True):
+async def parse_rider(full_name, url, session, verbose=True) -> Dict:
     if verbose:
         print(f"Processing rider {full_name}")
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
+    soup = await fetch_async(url, session)
     
     result = dict()
     result["url"] = url
@@ -86,14 +86,16 @@ def parse_rider(full_name, url, verbose=True):
     
     return result
 
-
+async def process_all_riders(tt_specialists_dict) -> List[Dict]:
+    """Process all riders concurrently using async"""
+    async with aiohttp.ClientSession() as session:
+        tasks = [parse_rider(name, url, session) for name, url in tt_specialists_dict.items()]
+        data = await asyncio.gather(*tasks)
+    return data
 
 if __name__ == "__main__":
-    tt_specialists_dict = get_tt_specialists()
-    data = [parse_rider(name,url) for name, url in tt_specialists_dict.items()]
+    tt_specialists_dict = get_all_tt_specialists()
+    data = asyncio.run(process_all_riders(tt_specialists_dict))
     df = pd.DataFrame(data)
-    df.to_csv("data/riders.csv",index=False)
+    df.to_csv("data/riders.csv", index=False) 
     
-    # url = "https://www.procyclingstats.com/rider/vincenzo-nibali"
-    # name = "NIBALI Vincenzo"
-    # print(parse_rider(full_name=name,url=url))
