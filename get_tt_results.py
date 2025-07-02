@@ -18,8 +18,7 @@ async def get_time_trials_per_rider(rider_url, session, verbose=True) -> pd.Data
     
     base_url = "https://www.procyclingstats.com/"
     
-    all_lines = soup.select("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.mt10 > span > table > tbody > tr")
-    
+    all_lines = soup.select("body > div.wrapper > div.content > div.page-content > div > div.mt10 > table > tbody > tr")
     for line in all_lines:
         date_str = line.select_one("td:nth-child(1)").get_text()
         date = datetime.strptime(date_str, "%Y-%m-%d")

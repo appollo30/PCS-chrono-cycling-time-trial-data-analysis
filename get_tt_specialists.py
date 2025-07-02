@@ -14,8 +14,7 @@ def get_all_tt_specialists_per_year(year=2025, verbose=True) -> Set[Tuple[str,st
         print(f"Accessing the list of riders for {year}")
     soup = fetch(rider_specialties_url)
     
-    all_rows = soup.select("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > span > table > tbody > tr")
-
+    all_rows = soup.select("body > div.wrapper > div.content > div.page-content > div > div:nth-child(4) > table > tbody > tr")
     for i in range(0, 50):
         if i < len(all_rows):
             rider_link = all_rows[i].select_one("td:nth-child(4) > a")
@@ -54,35 +53,26 @@ async def parse_rider(full_name, url, session, verbose=True) -> Dict:
     result["last_name"] = last_name
     result["full_name"] = first_name + " " + last_name
     
-    result["nationality"] = soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > a").get_text()
+    rider_info = soup.select_one("body > div.wrapper > div.content > div.page-content.noSideNav > div > div.borderbox.left.w40.mb_w100 > div.borderbox.left.w65")
     
-    # shittiest code ever
-    info = soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont")
-    split_info = info.get_text().split()
-    n = len(split_info)
-    result["birth_year"] = None
-    result["height"] = None
-    result["weight"] = None
-    for i, info in enumerate(split_info):
-        if i > 1:
-            if info == "kg":
-                result["weight"] = float(split_info[i-1])
-                continue
-        if i < n-1:
-            if info == "Height:":
-                result["height"] = float(split_info[i+1])
-        if i < n-4:
-            if info == "birth:" and split_info[i+4].endswith("Nationality:"):
-                result["birth_year"] = int(split_info[i+3])
-                continue
+    result["nationality"] = rider_info.select_one("div:nth-child(2) > ul > li > div:nth-child(3) > a").get_text()
+    result["birth_year"] = int(rider_info.select_one("div:nth-child(1) > ul > li > div:nth-child(4)").get_text())
+    if rider_info.select_one("div.mb10.mt5 > h4"):
+        additional_divs = 1
+    else :
+        additional_divs = 0
         
-    result["onedayraces"] = int(soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > span:nth-child(8) > span > div.pps > ul > li:nth-child(1) > div.pnt").get_text())
-    result["gc"] = int(soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > span:nth-child(8) > span > div.pps > ul > li:nth-child(1) > div.pnt").get_text())
-    result["tt"] = int(soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > span:nth-child(8) > span > div.pps > ul > li:nth-child(3) > div.pnt").get_text()) 
-    result["sprint"] = int(soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > span:nth-child(8) > span > div.pps > ul > li:nth-child(4) > div.pnt").get_text())
-    result["climber"] = int(soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > span:nth-child(8) > span > div.pps > ul > li:nth-child(5) > div.pnt").get_text()) 
-    result["hills"] = int(soup.select_one("body > div.wrapper > div.content > div.page-content.page-object.default > div:nth-child(2) > div.left.w75.mb_w100 > div.left.w50.mb_w100 > div.rdr-info-cont > span:nth-child(8) > span > div.pps > ul > li:nth-child(6) > div.pnt").get_text())
+    result["height"] = float(rider_info.select_one(f"div:nth-child({3+additional_divs}) > ul > li > div:nth-child(5)").get_text())
+    result["weight"] = float(rider_info.select_one(f"div:nth-child({3+additional_divs}) > ul > li > div:nth-child(2)").get_text())
     
+    rider_specialties = rider_info.select_one(f"div:nth-child({6+additional_divs})")
+    
+    result["onedayraces"] = int(rider_info.select_one("ul > li:nth-child(1) > div.xvalue.ac").get_text())
+    result["gc"] = int(rider_info.select_one("ul > li:nth-child(2) > div.xvalue.ac").get_text())
+    result["tt"] = int(rider_info.select_one("ul > li:nth-child(3) > div.xvalue.ac").get_text())
+    result["sprint"] = int(rider_info.select_one("ul > li:nth-child(4) > div.xvalue.ac").get_text())
+    result["climber"] = int(rider_info.select_one("ul > li:nth-child(5) > div.xvalue.ac").get_text())
+    result["hills"] = int(rider_info.select_one("ul > li:nth-child(6) > div.xvalue.ac").get_text())
     
     return result
 
