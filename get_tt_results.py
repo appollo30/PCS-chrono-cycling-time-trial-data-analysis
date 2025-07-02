@@ -1,5 +1,5 @@
 import pandas as pd
-from utils import fetch_async
+from utils import fetch_async, minutes_to_seconds
 from datetime import datetime
 import aiohttp
 import asyncio
@@ -46,12 +46,6 @@ async def get_time_trials_per_rider(rider_url, session, verbose=True) -> pd.Data
     df = pd.DataFrame(data)
         
     return df
-
-def minutes_to_seconds(time_in_minutes : str):
-    split = time_in_minutes.split(":")
-    return int(split[0])*60 + int(split[1])
-
-
 
 if __name__ == "__main__":
     async def main():

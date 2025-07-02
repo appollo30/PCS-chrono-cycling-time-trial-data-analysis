@@ -36,3 +36,7 @@ async def fetch_async(url, session, headers=None, parser="html.parser"):
         response.raise_for_status()
         text = await response.text()
         return BeautifulSoup(text, parser)
+    
+def minutes_to_seconds(time_in_minutes : str, sep = ":"):
+    split = time_in_minutes.split(sep)
+    return int(split[0])*60 + int(split[1])
