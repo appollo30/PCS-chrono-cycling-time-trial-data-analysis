@@ -84,6 +84,7 @@ if __name__ == "__main__":
         
         races_df = pd.DataFrame(data)
         races_df["date"] = pd.to_datetime(races_df["date"])
+        races_df = races_df.sort_values("date",ascending=False)
         races_df.to_csv("data/races.csv",index=False)
         
     asyncio.run(main())

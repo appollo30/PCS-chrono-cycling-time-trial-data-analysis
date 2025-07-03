@@ -97,6 +97,7 @@ if __name__ == "__main__":
             tasks = [process_rider(name, url, session) for name, url in all_riders]
             data = await asyncio.gather(*tasks)
         riders_df = pd.DataFrame(data)
+        riders_df = riders_df.sort_values(["last_name","first_name"])
         riders_df.to_csv("data/riders.csv",index=False)
     
     asyncio.run(main())

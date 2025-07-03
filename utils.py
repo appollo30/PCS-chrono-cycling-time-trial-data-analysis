@@ -43,6 +43,8 @@ async def fetch_async(url, session, headers=None, parser="html.parser", verbose=
     
 def minutes_to_seconds(time_in_minutes : str, sep = ":"):
     split = time_in_minutes.split(sep)
+    if len(split) == 3:
+        return int(split[0])*3600 + int(split[1])*60 + int(split[2])
     return int(split[0])*60 + int(split[1])
 
 def to_numeric(s : str):
