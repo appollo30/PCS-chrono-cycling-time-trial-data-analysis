@@ -2,6 +2,7 @@ from utils import fetch, fetch_async, minutes_to_seconds, to_numeric
 import pandas as pd
 import aiohttp
 import asyncio
+from time import perf_counter
 
 BASE_URL = "https://www.procyclingstats.com/"
 
@@ -9,12 +10,14 @@ async def process_race(url, session, verbose=True):
     soup = await fetch_async(url,session, verbose=verbose)
     
     result = parse_race(soup, verbose=verbose)
+    result["url"] = url
     return result
 
 def process_race_sync(url, verbose=True):
     soup = fetch(url, verbose=verbose)
     
     result = parse_race(soup,verbose=verbose)
+    result["url"] = url
     return result
 
 def parse_race(soup, verbose=True):
@@ -78,6 +81,7 @@ if __name__ == "__main__":
         async with aiohttp.ClientSession() as session:
             tasks = [process_race(url,session) for url in url_list]
             data = await asyncio.gather(*tasks)
+        
         races_df = pd.DataFrame(data)
         races_df["date"] = pd.to_datetime(races_df["date"])
         races_df.to_csv("data/races.csv",index=False)
