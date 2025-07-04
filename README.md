@@ -1,6 +1,6 @@
 # PCS Chrono - Cycling Time Trial Data Analysis
 
-A Python project for scraping, analyzing, and visualizing cycling time trial data from ([ProCyclingStats (PCS)](https://www.procyclingstats.com)). This project collects comprehensive data on time trial races, results, and rider statistics to provide insights into professional cycling performance.
+A Python project for scraping, analyzing, and visualizing cycling time trial data from [ProCyclingStats (PCS)](https://www.procyclingstats.com). This project collects comprehensive data on time trial races, results, and rider statistics to provide insights into professional cycling performance.
 
 ## 📊 Project Overview
 
