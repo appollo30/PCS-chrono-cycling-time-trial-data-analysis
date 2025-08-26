@@ -30,26 +30,26 @@ def parse_race(soup, verbose=True):
     overall_info = soup.select_one("body > div.wrapper > div.content > div.page-content.noSideNav > div > div.borderbox.w30.right.mb_w100")
     
     race_info = overall_info.select_one("div.left.w70 > ul")
-    
+
     result["date"] = race_info.select_one("li:nth-child(1) > div.value").get_text()
-    result["departure"] = race_info.select_one("li:nth-child(12) > div.value > a").get_text()
-    result["arrival"] = race_info.select_one("li:nth-child(13) > div.value > a").get_text()
+    result["departure"] = race_info.select_one("li:nth-child(13) > div.value > a").get_text()
+    result["arrival"] = race_info.select_one("li:nth-child(14) > div.value > a").get_text()
     result["class"] = race_info.select_one("li:nth-child(4) > div.value").get_text()
     result["distance"] = float(race_info.select_one("li:nth-child(6) > div.value").get_text().split()[0]) # in km
     
-    vertical_meters = race_info.select_one("li:nth-child(11) > div.value").get_text() # in m
+    vertical_meters = race_info.select_one("li:nth-child(12) > div.value").get_text() # in m
     result["vertical_meters"] = to_numeric(vertical_meters)
     
-    startlist_quality = race_info.select_one("li:nth-child(15) > div.value > a").get_text()
+    startlist_quality = race_info.select_one("li:nth-child(16) > div.value > a").get_text()
     result["startlist_quality"] = to_numeric(startlist_quality)
     
-    profile_score = race_info.select_one("li:nth-child(10) > div.value").get_text()
+    profile_score = race_info.select_one("li:nth-child(11) > div.value").get_text()
     result["profile_score"] = to_numeric(profile_score)
     
-    temperature = race_info.select_one("li:nth-child(17) > div.value > a").get_text().split(" ")[0] # in °C
+    temperature = race_info.select_one("li:nth-child(18) > div.value > a").get_text().split(" ")[0] # in °C
     result["temperature"] = to_numeric(temperature)
     
-    race_ranking = race_info.select_one("li:nth-child(14) > div.value > a").get_text()
+    race_ranking = race_info.select_one("li:nth-child(15) > div.value > a").get_text()
     result["race_ranking"] = to_numeric(race_ranking)
     
     winner_time_str = soup.select_one("#resultsCont > div:nth-child(1) > div > table > tbody > tr:nth-child(1) > td.time.ar").get_text()
@@ -88,3 +88,4 @@ if __name__ == "__main__":
         races_df.to_csv("data/races.csv",index=False)
         
     asyncio.run(main())
+    #test_race("http://procyclingstats.com/race/tour-de-romandie/2023/stage-3")
