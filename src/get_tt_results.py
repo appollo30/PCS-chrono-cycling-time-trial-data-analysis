@@ -1,5 +1,5 @@
 import pandas as pd
-from utils import fetch, fetch_async, minutes_to_seconds
+from src.utils import fetch, fetch_async, minutes_to_seconds
 from datetime import datetime
 import aiohttp
 import asyncio

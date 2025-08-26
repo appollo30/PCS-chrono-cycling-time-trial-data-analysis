@@ -1,8 +1,8 @@
 import asyncio
 import aiohttp
-from get_tt_specialists import get_all_tt_specialists, process_rider
-from get_tt_results import process_results
-from get_tt_races import process_race
+from src.get_tt_specialists import get_all_tt_specialists, process_rider
+from src.get_tt_results import process_results
+from src.get_tt_races import process_race
 import pandas as pd
 from typing import List, Dict, Set, Tuple
 

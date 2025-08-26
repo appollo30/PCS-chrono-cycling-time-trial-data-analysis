@@ -1,4 +1,4 @@
-from utils import fetch, fetch_async, minutes_to_seconds, to_numeric
+from src.utils import fetch, fetch_async, minutes_to_seconds, to_numeric
 import pandas as pd
 import aiohttp
 import asyncio

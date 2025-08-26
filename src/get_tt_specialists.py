@@ -1,7 +1,7 @@
 import pandas as pd
 import asyncio
 import aiohttp
-from utils import fetch, fetch_async
+from src.utils import fetch, fetch_async
 from typing import List, Dict, Set, Tuple
 
 BASE_URL = "https://www.procyclingstats.com/"
