@@ -17,3 +17,5 @@ dependencies:
   - scikit-learn
   - tqdm
   - pytest
+  - pylint
+  - aiohttp

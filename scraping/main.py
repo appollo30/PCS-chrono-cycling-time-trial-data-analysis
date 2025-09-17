@@ -7,7 +7,7 @@ import pandas as pd
 from typing import List, Dict, Set, Tuple
 from tqdm.asyncio import tqdm
 
-async def main():
+async def main(to_csv=True, to_sqlite=True, to_mysql=False):
     # Collecting all time trial specialists
     all_riders = get_all_tt_specialists()
     
@@ -35,6 +35,7 @@ async def main():
             race_urls.add(result["race_url"])
         
         # Process all races concurrently with progress bar
+        print(len(race_urls))
         races_tasks = [process_race(url, session, verbose=False) for url in list(race_urls)]
         print()
         races_data = await tqdm.gather(*races_tasks, desc="Processing races", )
@@ -44,16 +45,18 @@ async def main():
     # Save data to CSV files        
     riders_df = pd.DataFrame(riders_data)
     riders_df = riders_df.sort_values(["last_name","first_name"])
-    riders_df.to_csv("data/riders.csv",index=False)
     
     results_df = pd.DataFrame(results_data)
     results_df = results_df.sort_values(["rider_url","race_url"])
-    results_df.to_csv("data/results.csv",index=False)
     
     races_df = pd.DataFrame(races_data)
     races_df["date"] = pd.to_datetime(races_df["date"])
     races_df = races_df.sort_values("date",ascending=False)
-    races_df.to_csv("data/races.csv",index=False)
+    
+    if to_csv:
+        riders_df.to_csv("data/riders.csv",index=False)
+        results_df.to_csv("data/results.csv",index=False)
+        races_df.to_csv("data/races.csv",index=False)
 
 if __name__ == "__main__":
     asyncio.run(main())

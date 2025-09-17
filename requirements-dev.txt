@@ -1,0 +1,9 @@
+-r requirements.txt
+
+pytest
+jupyterlab
+ipykernel
+notebook
+seaborn
+pylint
+matplotlib
