@@ -6,3 +6,4 @@
 requirements-dev.txt
 tests
 data/
+.pytest_cache/
