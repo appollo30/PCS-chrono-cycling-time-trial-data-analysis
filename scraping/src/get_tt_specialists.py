@@ -1,57 +1,111 @@
-import pandas as pd
+"""
+Module to scrape time trial specialists from pcs
+"""
+
+from typing import Dict, Set, Tuple
 import asyncio
+import pandas as pd
 import aiohttp
+from bs4 import BeautifulSoup
 from src.utils import fetch, fetch_async
-from typing import List, Dict, Set, Tuple
 
 BASE_URL = "https://www.procyclingstats.com/"
 
-async def process_rider(full_name, url, session, verbose=True):
+async def process_rider(
+    full_name : str,
+    url : str,
+    session : aiohttp.ClientSession,
+    verbose=True
+    ) -> Dict:
+    """
+    Async function to process a rider's profile page and extract relevant information.
+
+    Args:
+        full_name (str): Full name of the rider.
+        url (str): URL of the rider's profile page.
+        session (aiohttp.ClientSession): Reusable session for connection pooling.
+        verbose (bool): Whether to print progress messages. Defaults to True.
+    Returns:
+        Dict: A dictionary containing the rider's information.
+    """
+
     soup = await fetch_async(url,session, verbose=verbose)
-    
+
     result = parse_rider(full_name, soup, verbose=verbose)
     result["url"] = url
     return result
 
-def process_rider_sync(full_name, url, verbose=True):
+def process_rider_sync(full_name : str, url : str, verbose=True) -> Dict:
+    """
+    Synchronous function to process a rider's profile page and extract relevant information.
+    Args:
+        full_name (str): Full name of the rider.
+        url (str): URL of the rider's profile page.
+        verbose (bool): Whether to print progress messages. Defaults to True.
+    Returns:
+        Dict: A dictionary containing the rider's information.
+    """
     soup = fetch(url, verbose=verbose)
-    
+
     result = parse_rider(full_name, soup, verbose=verbose)
     result["url"] = url
     return result
 
-def parse_rider(full_name : str, soup, verbose=True) -> Dict:
-    
-    result = dict()
+def parse_rider(full_name : str, soup : BeautifulSoup, verbose=True) -> Dict:
+    """
+    Parses the rider's profile page soup to extract relevant information.
+    Args:
+        full_name (str): Full name of the rider.
+        soup (BeautifulSoup): Parsed HTML content of the rider's profile page.
+        verbose (bool): Whether to print progress messages. Defaults to True.
+    Returns:
+        Dict: A dictionary containing the rider's information.
+    """
+    result = {}
     first_name, last_name = process_name(full_name)
     result["first_name"] = first_name
     result["last_name"] = last_name
     result["full_name"] = first_name + " " + last_name
-    
+
     if verbose:
         print(f"Processing rider {full_name}")
-    
-        
-    rider_info = soup.select_one("body > div.wrapper > div.content > div.page-content.noSideNav > div > div.borderbox.left.w40.mb_w100 > div.borderbox.left.w65")
-    result["nationality"] = rider_info.select_one("div:nth-child(3) > ul > li > div:nth-child(3) > a").get_text()
-    result["birth_year"] = int(rider_info.select_one("div:nth-child(2) > ul > li > div:nth-child(4)").get_text())
-    
-    rider_dimensions = rider_info.select_one(f"div:nth-child(4) > ul > li")
-    result["height"] = float(rider_dimensions.select_one(f"div:nth-child(5)").get_text())
-    result["weight"] = float(rider_dimensions.select_one(f"div:nth-child(2)").get_text())
-    
-    result["onedayraces"] = int(rider_info.select_one("ul > li:nth-child(1) > div.xvalue.ac").get_text())
+
+    rider_info = soup.select_one("body > div.wrapper > div.content > div.page-content.noSideNav > "
+                                 "div > div.borderbox.left.w40.mb_w100 > div.borderbox.left.w65")
+    result["nationality"] = rider_info.select_one("div:nth-child(3) > ul > li > "
+                                                  "div:nth-child(3) > a").get_text()
+    result["birth_year"] = int(rider_info.select_one("div:nth-child(2) > ul > li > "
+                                                     "div:nth-child(4)").get_text())
+
+    rider_dimensions = rider_info.select_one("div:nth-child(4) > ul > li")
+    result["height"] = float(rider_dimensions.select_one("div:nth-child(5)").get_text())
+    result["weight"] = float(rider_dimensions.select_one("div:nth-child(2)").get_text())
+
+    result["onedayraces"] = int(rider_info.select_one("ul > li:nth-child(1) > "
+                                                      "div.xvalue.ac").get_text())
     result["gc"] = int(rider_info.select_one("ul > li:nth-child(2) > div.xvalue.ac").get_text())
     result["tt"] = int(rider_info.select_one("ul > li:nth-child(3) > div.xvalue.ac").get_text())
     result["sprint"] = int(rider_info.select_one("ul > li:nth-child(4) > div.xvalue.ac").get_text())
-    result["climber"] = int(rider_info.select_one("ul > li:nth-child(5) > div.xvalue.ac").get_text())
+    result["climber"] = int(rider_info.select_one("ul > li:nth-child(5) > "
+                                                  "div.xvalue.ac").get_text())
     result["hills"] = int(rider_info.select_one("ul > li:nth-child(6) > div.xvalue.ac").get_text())
-    
-    result["photo_url"] = BASE_URL + soup.select_one("body > div.wrapper > div.content > div.page-content.noSideNav > div > div.borderbox.left.w40.mb_w100 > div.borderbox.left.w30.mr5 > div > a > img").get("src")
-    
+
+    result["photo_url"] = BASE_URL + soup.select_one("body > div.wrapper > div.content > "
+                                                     "div.page-content.noSideNav > div > "
+                                                     "div.borderbox.left.w40.mb_w100 > "
+                                                     "div.borderbox.left.w30.mr5 > div > "
+                                                     "a > img").get("src")
+
     return result
 
 def process_name(full_name : str) -> Tuple[str,str]:
+    """
+    Processes a full name string to extract first and last names.
+    Args:
+        full_name (str): Full name of the rider.
+    Returns:
+        Tuple[str, str]: A tuple containing the first name and last name.
+    """
     full_name = full_name.replace("ß","SS") # In the case of Felix Großschartner
     split = full_name.strip().split(" ")
     last_name = ""
@@ -59,20 +113,33 @@ def process_name(full_name : str) -> Tuple[str,str]:
         if word == word.upper():
             last_name += word.capitalize() + " "
         else:
+            end_word_idx = i
             break
     last_name = last_name.strip()
-    first_name = " ".join(split[i:])
+    first_name = " ".join(split[end_word_idx:])
     return first_name, last_name
 
-def get_all_tt_specialists_per_year(year : int=2025, verbose : bool=True) -> Set[Tuple[str,str]]:
+def get_all_tt_specialists_per_year(year : int=2025, verbose=True) -> Set[Tuple[str,str]]:
+    """
+    Collects time trial specialists for a given year.
+    Args:
+        year (int): The year for which to collect time trial specialists. Defaults to 202
+        verbose (bool): Whether to print progress messages. Defaults to True.
+    Returns:
+        Set[Tuple[str, str]]: A set of tuples containing rider names and their profile URLs.
+    """
     result = set()
-    
-    rider_specialties_url = f"https://www.procyclingstats.com/rankings.php?date={year-1}-12-31&nation=&age=&zage=&page=smallerorequal&team=&offset=0&filter=Filter&p=me&s=time-trial"
+
+    rider_specialties_url = (
+        f"https://www.procyclingstats.com/rankings.php?date={year - 1}-12-31"
+        "&nation=&age=&zage=&page=smallerorequal&team=&offset=0&filter=Filter&p=me&s=time-trial"
+    )
     if verbose:
         print(f"Accessing the list of riders for {year}")
     soup = fetch(rider_specialties_url)
-    
-    all_rows = soup.select("body > div.wrapper > div.content > div.page-content > div > div:nth-child(4) > table > tbody > tr")
+
+    all_rows = soup.select("body > div.wrapper > div.content > div.page-content > div > "
+                           "div:nth-child(4) > table > tbody > tr")
     for i in range(0, 50):
         if i < len(all_rows):
             rider_link = all_rows[i].select_one("td:nth-child(4) > a")
@@ -81,24 +148,26 @@ def get_all_tt_specialists_per_year(year : int=2025, verbose : bool=True) -> Set
     return result
 
 def get_all_tt_specialists() -> Set[Tuple[str,str]]:
+    """
+    Collects all time trial specialists from 2020 to 2024.
+    Returns:
+        Set[Tuple[str, str]]: A set of tuples containing rider names and their profile URLs.
+    """
     tt_specialists_set = set()
     for year in range(2020,2025):
         tt_specialists_set = tt_specialists_set | get_all_tt_specialists_per_year(year)
-    
+
     return tt_specialists_set
 
 if __name__ == "__main__":
     async def main():
         all_riders = get_all_tt_specialists()
-        
+
         async with aiohttp.ClientSession() as session:
             tasks = [process_rider(name, url, session) for name, url in all_riders]
             data = await asyncio.gather(*tasks)
         riders_df = pd.DataFrame(data)
         riders_df = riders_df.sort_values(["last_name","first_name"])
         riders_df.to_csv("data/riders.csv",index=False)
-    
-    asyncio.run(main())
-    
 
-    
+    asyncio.run(main())
