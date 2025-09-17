@@ -1,7 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-import asyncio
-import aiohttp
 
 def fetch(url, headers=None, parser="html.parser", verbose=True):
     """

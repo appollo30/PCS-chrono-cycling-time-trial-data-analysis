@@ -31,17 +31,14 @@ def parse_rider(full_name : str, soup, verbose=True) -> Dict:
     if verbose:
         print(f"Processing rider {full_name}")
     
+        
     rider_info = soup.select_one("body > div.wrapper > div.content > div.page-content.noSideNav > div > div.borderbox.left.w40.mb_w100 > div.borderbox.left.w65")
+    result["nationality"] = rider_info.select_one("div:nth-child(3) > ul > li > div:nth-child(3) > a").get_text()
+    result["birth_year"] = int(rider_info.select_one("div:nth-child(2) > ul > li > div:nth-child(4)").get_text())
     
-    result["nationality"] = rider_info.select_one("div:nth-child(2) > ul > li > div:nth-child(3) > a").get_text()
-    result["birth_year"] = int(rider_info.select_one("div:nth-child(1) > ul > li > div:nth-child(4)").get_text())
-    if rider_info.select_one("div.mb10.mt5 > h4"):
-        additional_divs = 1
-    else :
-        additional_divs = 0
-    
-    result["height"] = float(rider_info.select_one(f"div:nth-child({3+additional_divs}) > ul > li > div:nth-child(5)").get_text())
-    result["weight"] = float(rider_info.select_one(f"div:nth-child({3+additional_divs}) > ul > li > div:nth-child(2)").get_text())
+    rider_dimensions = rider_info.select_one(f"div:nth-child(4) > ul > li")
+    result["height"] = float(rider_dimensions.select_one(f"div:nth-child(5)").get_text())
+    result["weight"] = float(rider_dimensions.select_one(f"div:nth-child(2)").get_text())
     
     result["onedayraces"] = int(rider_info.select_one("ul > li:nth-child(1) > div.xvalue.ac").get_text())
     result["gc"] = int(rider_info.select_one("ul > li:nth-child(2) > div.xvalue.ac").get_text())
@@ -101,4 +98,6 @@ if __name__ == "__main__":
         riders_df.to_csv("data/riders.csv",index=False)
     
     asyncio.run(main())
+    
+
     

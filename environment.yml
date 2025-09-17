@@ -15,7 +15,5 @@ dependencies:
   - notebook
   - seaborn
   - scikit-learn
-  - lxml
-  - html5lib
-  - aiohttp
   - tqdm
+  - pytest
