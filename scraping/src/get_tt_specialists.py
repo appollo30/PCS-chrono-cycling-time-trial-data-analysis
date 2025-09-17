@@ -52,6 +52,7 @@ def parse_rider(full_name : str, soup, verbose=True) -> Dict:
     return result
 
 def process_name(full_name : str) -> Tuple[str,str]:
+    full_name = full_name.replace("ß","SS") # In the case of Felix Großschartner
     split = full_name.strip().split(" ")
     last_name = ""
     for i, word in enumerate(split):
