@@ -1,6 +1,9 @@
+# Requirements for production. All the additional packages for testing, 
+# linting and plotting are located in requirements-dev.txt
 beautifulsoup4
 pandas
 requests
 numpy
 tqdm
 scikit-learn
+aiohttp
