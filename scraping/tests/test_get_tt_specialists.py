@@ -1,3 +1,4 @@
+from typing import Dict
 import pytest
 from src.get_tt_specialists import process_rider_sync
 
@@ -9,7 +10,7 @@ from src.get_tt_specialists import process_rider_sync
         ("BILBAO Pello", "https://www.procyclingstats.com/rider/pello-bilbao")
     ]
 )
-def test_process_rider_sync_expected_keys(full_name, url):
+def test_process_rider_sync_expected_keys(full_name : str, url : str):
     expected_keys = {
         "first_name",
         "last_name",
@@ -83,7 +84,7 @@ def test_process_rider_sync_expected_keys(full_name, url):
         )
     ]
 )  
-def test_process_rider_sync_values(full_name, url, expected):
+def test_process_rider_sync_values(full_name : str, url : str, expected : Dict):
     # Since some stats can change, we only check for a subset of keys
     assertable_keys = {
         "first_name",
