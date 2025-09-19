@@ -4,4 +4,4 @@ __pycache__/
 *.pyd
 *.vscode/
 scraping/data/
-*/.pytest_cache/
+*/.pytest_cache
