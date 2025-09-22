@@ -64,7 +64,7 @@ def test_process_race_sync_expected_keys(url : str):
                 "class": "2.UWT",
                 "distance": 33.7,
                 "vertical_meters": 720,
-                "startlist_quality": None,
+                "startlist_quality": 1344,
                 "profile_score": 73,
                 "temperature": 28,
                 "race_ranking": 1,
@@ -88,8 +88,8 @@ def test_process_race_sync_expected_keys(url : str):
                 "profile_score": 18,
                 "temperature": None,
                 "race_ranking": None,
-                "winner_time": 478499,
-                "winner_speed": 0.217,
+                "winner_time": 2099,
+                "winner_speed": 49.395,
                 "profile_image_url": "https://www.procyclingstats.com/images/profiles/ca/ac/uci-world-championships-itt-mj-2022-result-profile.jpg",
                 "url": "https://www.procyclingstats.com/race/uci-world-championships-itt-mj/2022/result"
             }
@@ -108,8 +108,8 @@ def test_process_race_sync_expected_keys(url : str):
                 "profile_score": 2,
                 "temperature": None,
                 "race_ranking": 168,
-                "winner_time": 419083,
-                "winner_speed": 0.348,
+                "winner_time": 2683,
+                "winner_speed": 54.342,
                 "profile_image_url": "https://www.procyclingstats.com/images/profiles/ca/be/nc-belgium-itt-2025-result-profile.jpg",
                 "url": "https://www.procyclingstats.com/race/nc-belgium-itt/2025/result"
             }
@@ -124,7 +124,7 @@ def test_process_race_sync_expected_keys(url : str):
                 "class": "2.Pro",
                 "distance": 23.9,
                 "vertical_meters": 237,
-                "startlist_quality": None,
+                "startlist_quality": 460,
                 "profile_score": 14,
                 "temperature": 15,
                 "race_ranking": 35,
@@ -144,7 +144,7 @@ def test_process_race_sync_expected_keys(url : str):
                 "class": "2.Pro",
                 "distance": 24.4,
                 "vertical_meters": 308,
-                "startlist_quality": None,
+                "startlist_quality": 497,
                 "profile_score": 18,
                 "temperature": None,
                 "race_ranking": 33,
@@ -159,4 +159,4 @@ def test_process_race_sync_expected_keys(url : str):
 def test_process_race_sync_values(url : str, expected : Dict):
     result = process_race_sync(url, verbose=False)
     for key, value in expected.items():
-        assert result[key] == value
+        assert value == result[key]

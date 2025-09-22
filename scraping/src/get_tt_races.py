@@ -3,12 +3,13 @@ Module to scrape time trial race information from pcs
 """
 
 import asyncio
-from typing import Dict
-#from time import perf_counter
+from typing import Dict, Union
+import re
+from time import perf_counter
 import pandas as pd
 import aiohttp
 from bs4 import BeautifulSoup
-from src.utils import fetch, fetch_async, minutes_to_seconds, to_numeric
+from src.utils import fetch, fetch_async, to_numeric, minutes_to_seconds
 
 BASE_URL = "https://www.procyclingstats.com/"
 
@@ -43,7 +44,7 @@ def process_race_sync(url : str, verbose=True) -> Dict:
     result["url"] = url
     return result
 
-def parse_race(soup : BeautifulSoup, verbose=True) -> Dict:
+def parse_race_old(soup : BeautifulSoup, verbose=True) -> Dict:
     """
     Parses the race's page soup to extract relevant information.
     Args:
@@ -87,12 +88,8 @@ def parse_race(soup : BeautifulSoup, verbose=True) -> Dict:
     race_ranking = race_info.select_one("li:nth-child(15) > div.value > a").get_text()
     result["race_ranking"] = to_numeric(race_ranking)
 
-    winner_time_str = soup.select_one("#resultsCont > div:nth-child(1) > div > "
-                                      "table > tbody > tr:nth-child(1) > td.time.ar").get_text()
-    if ":" in winner_time_str:
-        result["winner_time"] = minutes_to_seconds(winner_time_str,sep=":") # in seconds
-    else:
-        result["winner_time"] = minutes_to_seconds(winner_time_str.split(",")[0],sep=".") # in seconds
+    winner_time_str = soup.select_one("#resultsCont").select_one("td.time.ar > span").get_text()
+    result["winner_time"] = minutes_to_seconds(winner_time_str, sep = ":" if ":" in winner_time_str else ".") # in seconds
 
     result["winner_speed"] = round(3600*result["distance"]/result["winner_time"],3) # in km/h
 
@@ -105,6 +102,59 @@ def parse_race(soup : BeautifulSoup, verbose=True) -> Dict:
         result["profile_image_url"] = None
 
     return result
+
+def parse_race(soup : BeautifulSoup, verbose=True) -> Dict:
+    result = {}
+    
+    result["race_title"] = soup.select_one("head > title").get_text().replace(" results", "")
+    if verbose :
+        print(f"Parsing race {result["race_title"]}")
+    
+    
+    overall_info = soup.select_one("div.borderbox.w30.right.mb_w100")
+    race_info = overall_info.select("ul.list.keyvalueList.lineh16.fs12 li > div.value")  
+    values = [info.get_text() for info in race_info]
+    
+    result.update({
+        "date" : values[0],
+        "departure" : values[12],
+        "arrival" : values[13],
+        "class" : values[3],
+        "distance" : to_numeric(values[5].split()[0]),
+        "vertical_meters" : to_numeric(values[11]),
+        "startlist_quality" : handle_startlist_quality(values[15]),
+        "profile_score" : to_numeric(values[10])
+    })
+                
+    temperature_str = values[17]
+    if len(temperature_str.strip()) == 0:
+        result["temperature"] = None
+    else:
+        result["temperature"] = to_numeric(values[17].split()[0])
+    
+    result["race_ranking"] = to_numeric(values[14])
+    
+    winner_time_str = soup.select_one("#resultsCont").select_one("td.time.ar > span").get_text()
+    result["winner_time"] = minutes_to_seconds(winner_time_str, sep = ":" if ":" in winner_time_str else ".") # in seconds
+    result["winner_speed"] = round(3600*result["distance"]/result["winner_time"],3) # in km/h
+    
+    profile_image_url_extension = overall_info.select_one("div.mt10 img")
+    if profile_image_url_extension:
+        result["profile_image_url"] = BASE_URL + profile_image_url_extension.get("src")
+    else:
+        result["profile_image_url"] = None
+    
+    return result
+
+def handle_startlist_quality(s : str) -> Union[int, None]:
+    split = s.split()
+    if len(split) == 0:
+        return None
+    if len(split) == 1:
+        return to_numeric(split[0])
+    if len(split) == 2:
+        return to_numeric(re.sub(r"[()]", "", split[1]))
+
 
 if __name__ == "__main__":
     async def main():
