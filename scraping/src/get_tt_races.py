@@ -44,65 +44,6 @@ def process_race_sync(url : str, verbose=True) -> Dict:
     result["url"] = url
     return result
 
-def parse_race_old(soup : BeautifulSoup, verbose=True) -> Dict:
-    """
-    Parses the race's page soup to extract relevant information.
-    Args:
-        soup (BeautifulSoup): Parsed HTML content of the race's page.
-        verbose (bool): Whether to print progress messages. Defaults to True.
-    Returns:
-        Dict: A dictionary containing race information.
-    """
-    result = {}
-
-    result["race_title"] = soup.select_one("head > title").get_text().replace(" results", "")
-    if verbose :
-        print(f"Parsing race {result["race_title"]}")
-
-    overall_info = soup.select_one("body > div.wrapper > div.content > "
-                                   "div.page-content.noSideNav > div > "
-                                   "div.borderbox.w30.right.mb_w100")
-
-    race_info = overall_info.select_one("div.left.w70 > ul")
-
-    result["date"] = race_info.select_one("li:nth-child(1) > div.value").get_text()
-    result["departure"] = race_info.select_one("li:nth-child(13) > div.value > a").get_text()
-    result["arrival"] = race_info.select_one("li:nth-child(14) > div.value > a").get_text()
-    result["class"] = race_info.select_one("li:nth-child(4) > div.value").get_text()
-    result["distance"] = float(race_info.select_one("li:nth-child(6) > "
-                                                    "div.value").get_text().split()[0]) # in km
-
-    vertical_meters = race_info.select_one("li:nth-child(12) > div.value").get_text() # in m
-    result["vertical_meters"] = to_numeric(vertical_meters)
-
-    startlist_quality = race_info.select_one("li:nth-child(16) > div.value > a").get_text()
-    result["startlist_quality"] = to_numeric(startlist_quality)
-
-    profile_score = race_info.select_one("li:nth-child(11) > div.value").get_text()
-    result["profile_score"] = to_numeric(profile_score)
-
-    temperature = race_info.select_one("li:nth-child(18) > "
-                                       "div.value > a").get_text().split(" ")[0] # in °C
-    result["temperature"] = to_numeric(temperature)
-
-    race_ranking = race_info.select_one("li:nth-child(15) > div.value > a").get_text()
-    result["race_ranking"] = to_numeric(race_ranking)
-
-    winner_time_str = soup.select_one("#resultsCont").select_one("td.time.ar > span").get_text()
-    result["winner_time"] = minutes_to_seconds(winner_time_str, sep = ":" if ":" in winner_time_str else ".") # in seconds
-
-    result["winner_speed"] = round(3600*result["distance"]/result["winner_time"],3) # in km/h
-
-    profile_image_url_extension = overall_info.select_one("div:nth-child(4) > ul > li > "
-                                                          "div > a > img")
-
-    if profile_image_url_extension:
-        result["profile_image_url"] = BASE_URL + profile_image_url_extension.get("src")
-    else:
-        result["profile_image_url"] = None
-
-    return result
-
 def parse_race(soup : BeautifulSoup, verbose=True) -> Dict:
     result = {}
     
