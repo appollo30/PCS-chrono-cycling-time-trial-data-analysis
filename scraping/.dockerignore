@@ -5,5 +5,5 @@
 *.vscode/
 requirements-dev.txt
 tests
-data/
+data/*
 .pytest_cache/
