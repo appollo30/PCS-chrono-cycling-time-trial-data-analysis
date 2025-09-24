@@ -130,6 +130,9 @@ def parse_results(url : str, soup : BeautifulSoup, verbose=True) -> List[Dict]:
 
 if __name__ == "__main__":
     async def main():
+        """
+        Main function.
+        """
         riders_df = pd.read_csv("data/riders.csv")
         data = []
 

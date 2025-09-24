@@ -161,6 +161,9 @@ def get_all_tt_specialists() -> Set[Tuple[str,str]]:
 
 if __name__ == "__main__":
     async def main():
+        """
+        Main function to scrape time trial specialists and save their data to a CSV file.
+        """
         all_riders = get_all_tt_specialists()
 
         async with aiohttp.ClientSession() as session:

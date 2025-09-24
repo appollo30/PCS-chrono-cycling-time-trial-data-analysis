@@ -3,9 +3,8 @@ Module to scrape time trial race information from pcs
 """
 
 import asyncio
-from typing import Dict, Union
+from typing import Dict, Optional
 import re
-from time import perf_counter
 import pandas as pd
 import aiohttp
 from bs4 import BeautifulSoup
@@ -45,17 +44,24 @@ def process_race_sync(url : str, verbose=True) -> Dict:
     return result
 
 def parse_race(soup : BeautifulSoup, verbose=True) -> Dict:
+    """
+    Parses a race page soup to extract relevant information.
+    Args:
+        soup (BeautifulSoup): Parsed HTML content of the page.
+        verbose (bool): Whether to print progress messages. Defaults to True.
+    Returns:
+        Dict: A dictionary containing race information.
+    """
     result = {}
-    
+
     result["race_title"] = soup.select_one("head > title").get_text().replace(" results", "")
     if verbose :
         print(f"Parsing race {result["race_title"]}")
-    
-    
+
     overall_info = soup.select_one("div.borderbox.w30.right.mb_w100")
-    race_info = overall_info.select("ul.list.keyvalueList.lineh16.fs12 li > div.value")  
+    race_info = overall_info.select("ul.list.keyvalueList.lineh16.fs12 li > div.value")
     values = [info.get_text() for info in race_info]
-    
+
     result.update({
         "date" : values[0],
         "departure" : values[12],
@@ -66,39 +72,51 @@ def parse_race(soup : BeautifulSoup, verbose=True) -> Dict:
         "startlist_quality" : handle_startlist_quality(values[15]),
         "profile_score" : to_numeric(values[10])
     })
-                
+
     temperature_str = values[17]
     if len(temperature_str.strip()) == 0:
         result["temperature"] = None
     else:
         result["temperature"] = to_numeric(values[17].split()[0])
-    
+
     result["race_ranking"] = to_numeric(values[14])
-    
+
     winner_time_str = soup.select_one("#resultsCont").select_one("td.time.ar > span").get_text()
-    result["winner_time"] = minutes_to_seconds(winner_time_str, sep = ":" if ":" in winner_time_str else ".") # in seconds
+    result["winner_time"] = minutes_to_seconds(
+        winner_time_str, sep = ":" if ":" in winner_time_str else "."
+    ) # in seconds
     result["winner_speed"] = round(3600*result["distance"]/result["winner_time"],3) # in km/h
-    
+
     profile_image_url_extension = overall_info.select_one("div.mt10 img")
     if profile_image_url_extension:
         result["profile_image_url"] = BASE_URL + profile_image_url_extension.get("src")
     else:
         result["profile_image_url"] = None
-    
+
     return result
 
-def handle_startlist_quality(s : str) -> Union[int, None]:
+def handle_startlist_quality(s : str) -> Optional[int]:
+    """
+    Handle startlist quality from string input
+    The input can be in the form "123 (45)" or just "123", or empty.
+    Args:
+        s (str): Input string
+    Returns:
+        Optional[int]: Extracted startlist quality or None if not available
+    """
     split = s.split()
-    if len(split) == 0:
-        return None
     if len(split) == 1:
         return to_numeric(split[0])
     if len(split) == 2:
         return to_numeric(re.sub(r"[()]", "", split[1]))
+    return None
 
 
 if __name__ == "__main__":
     async def main():
+        """
+        Main function
+        """
         results_df = pd.read_csv('data/results.csv')
         url_set = set(results_df["race_url"].unique())
         url_list = list(url_set)

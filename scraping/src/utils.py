@@ -50,7 +50,7 @@ async def fetch_async(
         if verbose:
             print("Accessing page : ", url)
         return BeautifulSoup(text, parser)
-   
+
 def minutes_to_seconds(time_in_minutes_str : str, sep = ":") -> int:
     """
     Converts a time string in "MM:SS" or "HH:MM:SS" format to total seconds.
@@ -59,7 +59,7 @@ def minutes_to_seconds(time_in_minutes_str : str, sep = ":") -> int:
     if sep == ".":
         # remove ms part
         time_in_minutes_str = time_in_minutes_str.split(",")[0]
-    
+
     split = time_in_minutes_str.split(sep)
     if len(split) == 3:
         return int(split[0])*3600 + int(split[1])*60 + int(split[2])
@@ -76,7 +76,6 @@ def to_numeric(s : str) -> Union[int, float, None]:
     try:
         if '.' in s:
             return float(s)
-        else:
-            return int(s)
+        return int(s)
     except ValueError:
         return None

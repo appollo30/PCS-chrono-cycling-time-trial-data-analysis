@@ -7,3 +7,4 @@ requirements-dev.txt
 tests
 data/*
 .pytest_cache/
+db.sql
